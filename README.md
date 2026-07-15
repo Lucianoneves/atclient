@@ -201,5 +201,4 @@ npx prisma studio     # Interface visual do banco
 ## Licença
 
 Projeto privado — uso educacional.
-#   a t c l i e n t  
- 
+#
