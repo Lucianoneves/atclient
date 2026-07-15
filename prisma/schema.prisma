@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model Customer { // Modelo para o cliente
+  id  String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  email String @unique
+  phone String
+  address String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+
+  UserId String? @db.ObjectId 
+  User User?   @relation(fields: [UserId], references: [id]) // Referenciar o usuário para varios clientes
+
+  tickets Ticket[] // Referenciar o ticket  para varios clientes
+   
+
+
+ 
+}
+
+model Ticket {
+ id  String @id @default(auto()) @map("_id") @db.ObjectId
+ name String
+ description String
+ status String 
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt @default(now())
+
+ customerId String? @db.ObjectId
+ customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull) // Referenciar o cliente para varios tickets onDelete: SetNull para deletar o ticket se o cliente for deletado
+
+ userId String? @db.ObjectId 
+ User User? @relation(fields: [userId], references: [id], onDelete: SetNull) // Referenciar todos os tickets para um usuário
+}
+
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+
+
+  tickets       Ticket[] // Referenciar  de tickets para varios usuarios
+  customers     Customer[] // Referenciar  de customers para varios usuarios
+}
+
+model VerificationToken {
+  identifier String   @id @default(auto()) @map("_id") @db.ObjectId
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+
+
+
+
